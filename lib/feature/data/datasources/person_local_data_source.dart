@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test_project_bloc/core/error/exception.dart';
 import 'package:test_project_bloc/feature/data/models/person_model.dart';
-import 'package:meta/meta.dart';
 
 abstract class PersonLocalDataSource {
   /// Gets the cached [List<PersonModel>] which was gotten last time
@@ -25,7 +25,7 @@ class PersonLocalDataSourceImpl implements PersonLocalDataSource {
   Future<List<PersonModel>> getLastPersonsFromCache() {
     final jsonPersonsList =
         sharedPreferences.getStringList(CACHED_PERSONS_LIST);
-    if (jsonPersonsList.isNotEmpty) {
+    if (jsonPersonsList!.isNotEmpty) {
       return Future.value(jsonPersonsList
           .map((person) => PersonModel.fromJson(json.decode(person)))
           .toList());
@@ -35,7 +35,7 @@ class PersonLocalDataSourceImpl implements PersonLocalDataSource {
   }
 
   @override
-  Future<void> personsToCache(List<PersonModel> persons) {
+  Future<List<String>> personsToCache(List<PersonModel> persons) {
     final List<String> jsonPersonsList =
         persons.map((person) => json.encode(person.toJson())).toList();
 
