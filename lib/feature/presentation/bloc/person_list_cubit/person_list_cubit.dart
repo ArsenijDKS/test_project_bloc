@@ -1,7 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:test_project_bloc/core/error/failure.dart';
 import 'package:test_project_bloc/feature/domain/entities/person_entity.dart';
 import 'package:test_project_bloc/feature/domain/usecases/get_all_persons.dart';
 import 'package:test_project_bloc/feature/presentation/bloc/person_list_cubit/person_list_state.dart';
+
+const SERVER_FAILURE_MESSAGE = 'Server Failure';
+const CACHED_FAILURE_MESSAGE = 'Cache Failure';
 
 class PersonListCubit extends Cubit<PersonState> {
   final GetAllPersons getAllPersons;
@@ -24,11 +28,24 @@ class PersonListCubit extends Cubit<PersonState> {
 
     final failureOrPerson = await getAllPersons(PagePersonParams(page: page));
 
-    failureOrPerson.fold((error) => PersonError(message: ''), (character) {
+    failureOrPerson.fold(
+        (error) => emit(PersonError(message: _mapFailureToMessage(error))),
+        (character) {
       page++;
       final persons = (state as PersonLoading).oldPersonsList;
       persons.addAll(character);
       emit(PersonLoaded(persons));
     });
+  }
+
+  String _mapFailureToMessage(Failure failure) {
+    switch (failure.runtimeType) {
+      case ServerFailure:
+        return SERVER_FAILURE_MESSAGE;
+      case CacheFailure:
+        return CACHED_FAILURE_MESSAGE;
+      default:
+        return 'Unexpected Error';
+    }
   }
 }
